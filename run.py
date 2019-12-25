@@ -2,7 +2,8 @@ import logging
 import sys
 from typing import List, ByteString
 import markdown
-import plantumlblockprocessor
+from plantumlpreprocessor import PlantumlDiagramPreprocessor
+from plantumlprocesshandler import PlantUMLProcessHandler
 
 logger = logging.getLogger("run")
 
@@ -51,15 +52,14 @@ Options:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
     options = CommandLineOptions.parse_arguments(sys.argv)
     if options.show_help:
         print_help()
     else:
-        md = markdown.Markdown()
-        plantumlhandler = plantumlblockprocessor.PlantUMLProcessHandler(options.plant_uml_jar_path)
-        plantumlprocessor = plantumlblockprocessor.PlanUmlBlockProcessor(md.parser, plantumlhandler)
-        md.parser.blockprocessors.register(plantumlprocessor, "plant-uml-processor", 165)
+        md = markdown.Markdown(extensions=["fenced_code"])
+        plantuml_handler = PlantUMLProcessHandler(options.plant_uml_jar_path)
+        plantuml_preprocessor = PlantumlDiagramPreprocessor(md, plantuml_handler)
+        md.preprocessors.register(plantuml_preprocessor, "plantuml_preprocessor", 165)
 
         md.convertFile(input=options.input_file,
                        output=options.output_file)
